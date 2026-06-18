@@ -1,0 +1,18 @@
+-- Optional: materialized view for production-scale warehouses.
+-- Not applied by docker compose by default — run manually after fb_audit ETL:
+--   psql ... -f schema/mv_insights_daily.sql.example
+--
+-- Requires video_* columns on insights (full fb_audit schema).
+-- Refresh after each insights_update run:
+--   REFRESH MATERIALIZED VIEW CONCURRENTLY mv_insights_daily;
+
+DROP MATERIALIZED VIEW IF EXISTS mv_insights_daily;
+
+CREATE MATERIALIZED VIEW mv_insights_daily AS
+SELECT * FROM v_insights_daily;
+
+CREATE UNIQUE INDEX mv_insights_daily_pk ON mv_insights_daily (ad_id, date_start);
+CREATE INDEX mv_insights_daily_account_date ON mv_insights_daily (account_id, date_start);
+CREATE INDEX mv_insights_daily_date ON mv_insights_daily (date_start);
+
+GRANT SELECT ON mv_insights_daily TO data_analyst_ro;

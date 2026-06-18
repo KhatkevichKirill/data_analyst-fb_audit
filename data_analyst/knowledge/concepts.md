@@ -22,26 +22,19 @@ Unquoted numeric literals cause: `operator does not exist: character varying = b
 
 | Metric | Definition |
 |---|---|
-| Spend | `SUM(spend)` from `insights` |
+| Spend | `SUM(spend)` from `v_insights_daily` |
 | Impressions | `SUM(impressions)` |
 | Clicks | `SUM(clicks)` |
+| Purchases | `SUM(purchases)` from `v_insights_daily` |
 | CTR | `SUM(clicks)::float / NULLIF(SUM(impressions), 0)` |
-| CPA | `SUM(spend) / NULLIF(purchases, 0)` where purchases come from `actions` JSONB |
-| Hook rate | video views / impressions — extract `video_view` from `actions` JSONB |
+| CPA | `SUM(spend) / NULLIF(SUM(purchases), 0)` |
+| Hook rate | `SUM(video_views) / NULLIF(SUM(impressions), 0)` from `v_insights_daily` |
 
-Purchases are **not** a native column on `insights`. Extract:
-
-```sql
-SUM((elem->>'7d_click')::numeric)
-FROM jsonb_array_elements(actions) elem
-WHERE elem->>'action_type' = 'omni_purchase'
-```
-
-Default attribution window: `7d_click`.
+If `v_insights_daily` is not installed, extract purchases from `insights.actions` JSONB (`omni_purchase`, `7d_click` window). See `schema_insights`.
 
 ## Date windows
 
-Insights use `date_start` as a calendar date. For account timezone `"America/Los_Angeles"`:
+Insights use `date_start` as a calendar date. For account timezone from `property_accounts.timezone_name`:
 
 ```sql
 WITH la_today AS (
@@ -50,6 +43,8 @@ WITH la_today AS (
   LIMIT 1
 )
 ```
+
+Performance queries should filter `v_insights_daily.date_start` (or `insights.date_start`).
 
 | Phrase | Meaning |
 |---|---|
@@ -66,10 +61,10 @@ Always state the exact date range in the answer.
 
 ```sql
 EXISTS (
-  SELECT 1 FROM insights i
-  WHERE i.ad_id = property_ads.id
-    AND i.date_start >= current_date - 3
-    AND i.spend > 0
+  SELECT 1 FROM v_insights_daily v
+  WHERE v.ad_id = property_ads.id
+    AND v.date_start >= current_date - 3
+    AND v.spend > 0
 )
 ```
 

@@ -8,7 +8,7 @@ const CURRENT_USER = (document.querySelector("header .user span")?.textContent |
 const STARTER_QUESTIONS = [
   {
     label: "Top ads by spend",
-    prompt: "Show the top 5 ads by spend over the last 7 days. Include campaign name, spend, impressions, clicks, and CPA (extract purchases from insights.actions JSONB).",
+    prompt: "Show the top 5 ads by spend over the last 7 days from v_insights_daily. Include campaign name, spend, impressions, clicks, purchases, and CPA.",
   },
   {
     label: "Daily spend trend",

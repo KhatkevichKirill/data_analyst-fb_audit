@@ -51,11 +51,10 @@ def cmd_repl(_: argparse.Namespace) -> int:
     return repl_main() or 0
 
 
-def cmd_init_demo(_: argparse.Namespace) -> int:
+def _apply_sql(path: Path) -> None:
     import psycopg2
 
-    schema_path = REPO_ROOT / "schema" / "fb_audit_warehouse.sql"
-    sql = schema_path.read_text()
+    sql = path.read_text()
     conn = psycopg2.connect(
         host=_env("DB_HOST"),
         port=_env("DB_PORT", "5432"),
@@ -69,7 +68,17 @@ def cmd_init_demo(_: argparse.Namespace) -> int:
             cur.execute(sql)
     finally:
         conn.close()
-    print(f"Applied demo schema: {schema_path}")
+    print(f"Applied: {path}")
+
+
+def cmd_init_demo(_: argparse.Namespace) -> int:
+    _apply_sql(REPO_ROOT / "schema" / "fb_audit_warehouse.sql")
+    _apply_sql(REPO_ROOT / "schema" / "v_insights_daily.sql")
+    return 0
+
+
+def cmd_init_view(_: argparse.Namespace) -> int:
+    _apply_sql(REPO_ROOT / "schema" / "v_insights_daily.sql")
     return 0
 
 
@@ -95,8 +104,11 @@ def build_parser() -> argparse.ArgumentParser:
     serve.set_defaults(func=cmd_serve)
 
     sub.add_parser("repl", help="run the terminal REPL").set_defaults(func=cmd_repl)
-    sub.add_parser("init-demo", help="apply demo analytics schema/seed").set_defaults(
+    sub.add_parser("init-demo", help="apply fb_audit warehouse schema/seed + v_insights_daily").set_defaults(
         func=cmd_init_demo
+    )
+    sub.add_parser("init-view", help="apply v_insights_daily view to analytics DB").set_defaults(
+        func=cmd_init_view
     )
 
     migrate = sub.add_parser("migrate", help="run analyst_app DB migrations")

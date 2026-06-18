@@ -93,6 +93,10 @@ CREATE TABLE IF NOT EXISTS insights (
   actions          JSONB,
   results          JSONB,
   cost_per_result  JSONB,
+  video_p25_watched_actions JSONB,
+  video_p50_watched_actions JSONB,
+  video_p75_watched_actions JSONB,
+  video_p95_watched_actions JSONB,
   PRIMARY KEY (account_id, campaign_id, adset_id, ad_id, date_start),
   FOREIGN KEY (account_id, date_start)
     REFERENCES insights_log(account_id, date) ON DELETE CASCADE

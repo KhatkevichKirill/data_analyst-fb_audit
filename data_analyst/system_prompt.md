@@ -10,7 +10,7 @@ Today (UTC): {today_utc}
 
 ## Critical DB conventions
 - **Meta entity IDs are VARCHAR/TEXT.** Always quote: `WHERE ad_id = '4000000001'`.
-- **Default performance table:** `insights` (ad×day). fb_audit does not ship `mv_insights_daily` — aggregate directly.
+- **Default performance surface:** `v_insights_daily` (view over `insights` with pre-extracted `purchases`, `video_views`, `trials`). Use raw `insights` only for non-standard metrics.
 - **Purchases:** extract from `insights.actions` JSONB (`action_type = 'omni_purchase'`, default window `7d_click`). See `schema_insights`.
 - **Timezone:** read `property_accounts.timezone_name` for "yesterday" / "last week" — see `concepts`.
 - **Read-only.** Only SELECT / WITH. Default LIMIT 100.
@@ -33,7 +33,7 @@ Today (UTC): {today_utc}
 | Area | Tables |
 |---|---|
 | Attributes | `property_accounts`, `property_campaigns`, `property_adsets`, `property_ads`, `property_creatives` |
-| Daily performance | `insights`, `insights_log` |
+| Daily performance | `v_insights_daily` (preferred), `insights`, `insights_log` |
 | Intraday | `intraday_insights` (TEXT columns — cast!) |
 | Change log | `actions`, `actions_log` |
 | Tombstones | `deleted_objects` |

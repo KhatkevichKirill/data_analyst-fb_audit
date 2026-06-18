@@ -2,10 +2,29 @@
 
 **Pipeline:** Meta Ads API → `insights_update.ipynb` (daily), `intraday_insights.py` (intraday).
 
-> **Default surface for fb_audit:** query `insights` directly at ad×day grain.
-> Unlike full production stacks, fb_audit does **not** ship a pre-built
-> `mv_insights_daily` materialized view. Aggregate `spend`, `impressions`,
-> `clicks`, and extracted purchases in SQL.
+> **Default surface for fb_audit:** query `v_insights_daily` for ad×day performance.
+> It pre-extracts `purchases`, `trials`, and `video_views` from `insights` JSONB.
+> Use raw `insights` only when you need a non-standard action type or attribution window.
+
+---
+
+## v_insights_daily (view)
+
+**Purpose:** Analyst-friendly daily metrics. Created by `schema/v_insights_daily.sql` in this starter kit.
+
+**Granularity:** One row per `(ad_id, date_start)` — same as `insights`.
+
+**Key columns:**
+- `account_id`, `campaign_id`, `adset_id`, `ad_id`, `date_start`
+- `spend`, `impressions`, `clicks`, `reach` — numeric, sum directly
+- `purchases`, `trials`, `video_views` — pre-extracted numeric columns
+- `p25`, `p50`, `p75`, `p95` — video retention quartile sums (0 when video columns absent)
+
+**Join keys:** same as `insights`.
+
+**Gotchas:**
+- This is a regular VIEW — always current, no refresh job. For large warehouses, optionally materialize as `mv_insights_daily` (see `schema/mv_insights_daily.sql.example`).
+- Hook rate = `SUM(video_views) / NULLIF(SUM(impressions), 0)`.
 
 ---
 

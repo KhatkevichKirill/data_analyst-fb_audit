@@ -20,7 +20,7 @@ data-analyst adduser admin --admin
 data-analyst serve
 ```
 
-The docker seed creates the same table **names** as fb_audit with synthetic rows.
+The docker seed creates fb_audit table names, seed data, and the `v_insights_daily` view.
 
 ### Path B — Your real fb_audit database
 
@@ -35,29 +35,28 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO data_analyst_ro;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO data_analyst_ro;
 ```
 
-3. Point `.env`:
+3. Point `.env` at the warehouse (`DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`).
 
-```env
-DB_HOST=...
-DB_NAME=your_db
-DB_USER=data_analyst_ro
-DB_PASSWORD=...
+4. Apply the analyst view (once per warehouse):
+
+```bash
+data-analyst init-view
+# or: psql ... -f schema/v_insights_daily.sql
 ```
 
-4. Start the analyst app — knowledge pages already document fb_audit tables.
+5. Start the analyst app.
 
 ## What works without customization
 
 - Table names and relationships match fb_audit output
-- Knowledge base (`data_analyst/knowledge/`) documents insights, property_*, actions
-- System prompt knows purchases extraction from `actions` JSONB
-- Example queries in `reference.md` and starter chips in the notebook UI
+- `v_insights_daily` view with pre-extracted purchases, video_views, trials
+- Knowledge base documents fb_audit tables and query patterns
 
 ## Optional extensions (minimal extra work)
 
 | Extension | Effort | Benefit |
 |---|---|---|
-| Add `mv_insights_daily` matview | SQL migration + refresh cron | Faster queries, pre-extracted purchases column |
+| Add `mv_insights_daily` matview | Run `schema/mv_insights_daily.sql.example` + refresh cron | Faster queries on large warehouses |
 | Breakdown ETL | New fetch script | Age/gender and placement analysis — see `schema_breakdowns` |
 | Custom campaign tags | View or column on `property_campaigns` | Test/BAU segmentation without name heuristics |
 | nginx + `URL_PREFIX=/analyst` | Copy `deploy/nginx-analyst.conf.example` | Subpath hosting behind reverse proxy |
