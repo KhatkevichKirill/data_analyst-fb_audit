@@ -15,7 +15,26 @@ This repository is a **public starter kit**, not a production dump. It ships:
 
 For ingestion reference notebooks, see [fb_audit](https://github.com/KhatkevichKirill/fb_audit).
 
-## Quick Start
+## Related repositories
+
+| Repository | Role |
+|---|---|
+| [fb_audit](https://github.com/KhatkevichKirill/fb_audit) | Meta Marketing API → Postgres ETL notebooks and scripts |
+| **this repo** | Natural-language notebook analyst over the warehouse |
+
+Typical flow: use `fb_audit` to load `meta_ads`, then point this starter at that database and replace `data_analyst/knowledge/` with your schema docs.
+
+## Notebook web app
+
+Yes — the full multi-user **notebook UI** ships in this repo. After `data-analyst serve`, open `http://127.0.0.1:8000`, log in, create a notebook, and ask questions in natural language. The UI supports:
+
+- streaming answers (SSE)
+- Vega-Lite charts
+- CSV export
+- notebook sharing, fork, and Markdown export
+- per-cell model selection
+
+You need: Postgres (demo via `docker compose` or your own warehouse), one LLM API key in `.env`, and an app user from `data-analyst adduser`.
 
 ```bash
 cp .env.example .env
