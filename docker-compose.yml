@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: meta_ads_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./schema/01_setup.sql:/docker-entrypoint-initdb.d/01_setup.sql:ro
+      - ./schema/01b_analyst_app_grants.sql:/docker-entrypoint-initdb.d/01b_analyst_app_grants.sql:ro
+      - ./schema/demo_meta_ads.sql:/docker-entrypoint-initdb.d/02_demo_meta_ads.sql:ro
+      - data_analyst_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d meta_ads_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  data_analyst_pg:

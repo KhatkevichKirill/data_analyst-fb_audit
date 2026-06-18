@@ -1,0 +1,14 @@
+# Pip requirements for the python_exec sandbox venv.
+# This venv runs INSIDE bwrap and MUST NOT contain psycopg2 / asyncpg / litellm.
+#
+# Install:
+#   python -m venv .sandbox_venv
+#   .sandbox_venv/bin/pip install -r data_analyst/sandbox-requirements.txt
+
+pandas==2.3.3
+numpy==2.2.6
+pyarrow==24.0.0
+scipy==1.15.3
+statsmodels==0.14.6
+scikit-learn==1.7.2
+matplotlib==3.10.9

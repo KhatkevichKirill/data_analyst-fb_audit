@@ -1,0 +1,5 @@
+\c analyst_app
+
+GRANT ALL ON SCHEMA public TO data_analyst_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO data_analyst_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO data_analyst_app;

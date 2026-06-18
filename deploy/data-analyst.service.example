@@ -1,0 +1,20 @@
+[Unit]
+Description=Meta Ads Data Analyst (starter kit)
+After=network.target
+
+[Service]
+Type=simple
+User=data-analyst
+Group=data-analyst
+WorkingDirectory=/opt/data-analyst
+EnvironmentFile=/opt/data-analyst/.env
+ExecStart=/opt/data-analyst/.venv/bin/data-analyst serve --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+# Hardening examples — tune for your host
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
