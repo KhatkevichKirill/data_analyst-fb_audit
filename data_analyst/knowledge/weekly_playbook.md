@@ -1,25 +1,39 @@
-# Weekly Playbook
+# Weekly playbook
 
-Use these checks when the user asks for a weekly summary or recurring analytics.
+Recurring checks for a fb_audit warehouse. Adapt account filters to your setup.
 
-## Check 1 — account test summary (7d)
-Total spend, purchases, CPA, impressions, clicks for `campaign_class = 'test'`.
+## Check 1 — account summary (7d)
 
-## Check 2 — top test ads
-Top ads by spend in test campaigns over the last 7 complete days.
+Total spend, impressions, clicks, purchases, CPA for the last 7 complete days.
+
+```sql
+-- purchases via actions JSONB — see reference.md
+```
+
+## Check 2 — top ads by spend
+
+Top 10 ads by spend in the last 7 days with campaign name.
 
 ## Check 3 — zero-purchase spenders
-Ads with spend > 0 and purchases = 0 in the last 7 days, sorted by spend.
 
-## Check 4 — active test campaigns
-Campaigns with any spend or impressions yesterday in the test class.
+Ads with spend > 0 and zero extracted purchases in the last 7 days.
 
-## SQL pattern for test scope
+## Check 4 — data freshness
+
 ```sql
-FROM demo_insights_daily i
-JOIN demo_ads a ON a.ad_id = i.ad_id
-JOIN demo_campaigns c ON c.campaign_id = a.campaign_id
-WHERE c.campaign_class = 'test'
+SELECT max(date) AS latest_insights_date
+FROM insights_log
+WHERE account_id = 'YOUR_ACCOUNT_ID';
 ```
+
+Compare to yesterday in the account timezone.
+
+## Check 5 — intraday sanity (optional)
+
+If `intraday_insights.py` runs on schedule, confirm today's row count and latest `collected_at`.
+
+## Check 6 — recent operational changes
+
+Last 7 days of `actions` grouped by `translated_event_type` — pauses, budget updates, etc.
 
 Always state the exact date range used in the answer.

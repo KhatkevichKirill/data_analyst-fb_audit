@@ -1,14 +1,12 @@
-# Demo starter questions
-
-Use these prompts against the bundled demo warehouse.
+# Demo starter questions (fb_audit warehouse)
 
 | Label | Prompt |
 |---|---|
-| Top test ads | Top 5 test ads by spend in the last 7 days with purchases and CPA |
-| Test summary | Summarize spend, purchases, CPA, impressions, and clicks for test campaigns over the last 7 days |
-| Zero-purchase spenders | Which test ads spent money but got zero purchases in the last 7 days? Sort by spend |
-| Campaign comparison | Compare test campaigns by spend and purchases over the last 7 days |
-| BAU vs test | Compare total spend last week between `bau` and `test` campaign classes |
-| Weekly report | Run the weekly playbook checks for test campaigns |
+| Top ads by spend | Top 5 ads by spend in the last 7 days with campaign name, CPA |
+| Daily spend trend | Daily account spend for the last 14 days |
+| Zero-purchase spenders | Ads with spend > 0 and zero purchases in the last 7 days |
+| Campaign breakdown | Compare campaigns by spend and CPA over the last 7 days |
+| Data freshness | Latest date in insights_log — is yesterday loaded? |
+| Last week summary | Account-level spend, impressions, clicks, purchases, CPA for last week |
 
-All demo IDs are TEXT. The agent should quote them in SQL.
+Purchases come from `insights.actions` JSONB (`omni_purchase`, `7d_click` window). See `data_analyst/knowledge/reference.md`.

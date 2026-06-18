@@ -7,28 +7,28 @@ const CURRENT_USER = (document.querySelector("header .user span")?.textContent |
 
 const STARTER_QUESTIONS = [
   {
-    label: "Top 5 test creatives",
-    prompt: "Show the top 5 creatives from test campaigns over the last 7 days. Include spend, purchases, CPA, impressions, link clicks, CTR, and hook rate.",
+    label: "Top ads by spend",
+    prompt: "Show the top 5 ads by spend over the last 7 days. Include campaign name, spend, impressions, clicks, and CPA (extract purchases from insights.actions JSONB).",
   },
   {
-    label: "Unique creatives by pipeline",
-    prompt: "How many unique creatives were tested in test campaigns over the last 7 days? Break the count down by pipeline.",
-  },
-  {
-    label: "Pipeline results (7d)",
-    prompt: "How many creative pipelines are currently in test campaigns, and what are their results over the last 7 days?",
+    label: "Daily spend trend",
+    prompt: "Plot daily account spend for the last 14 days from the insights table.",
   },
   {
     label: "Zero-purchase spenders",
-    prompt: "Which test creatives spent money over the last 7 days but produced zero purchases? Show the highest-spend rows first.",
+    prompt: "Which ads spent money over the last 7 days but had zero omni_purchase conversions? Sort by spend descending.",
   },
   {
-    label: "Best pipeline by CPA",
-    prompt: "Which pipelines have the best CPA at statistically meaningful volume? Use the documented significance rules.",
+    label: "Campaign breakdown",
+    prompt: "Compare campaigns by spend, impressions, clicks, and CPA over the last 7 days.",
+  },
+  {
+    label: "Data freshness",
+    prompt: "What is the latest date loaded in insights_log? Is yesterday present?",
   },
   {
     label: "Last week summary",
-    prompt: "Summarize last week's test performance: spend, purchases, CPA, impressions, link clicks, CTR, hook rate, tested creatives, and active pipelines.",
+    prompt: "Summarize last week's performance: total spend, impressions, clicks, purchases, and CPA at account level.",
   },
 ];
 

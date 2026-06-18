@@ -35,8 +35,13 @@ _WIKI_DIR = knowledge_dir()
 _WIKI_PAGES = (
     "readme",
     "onboarding",
+    "main_overview",
+    "concepts",
     "reference",
     "schema",
+    "schema_insights",
+    "schema_entities",
+    "schema_breakdowns",
     "weekly_playbook",
 )
 

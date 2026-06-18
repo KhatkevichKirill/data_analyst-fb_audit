@@ -9,8 +9,8 @@ This repository is a **public starter kit**, not a production dump. It ships:
 - FastAPI notebook web app with multi-user auth
 - Read-only SQL, chart, CSV export, and optional sandboxed `python_exec`
 - `analyst_app` state database for notebooks, cells, and events
-- Demo Postgres schema with synthetic campaigns, ads, and daily insights
-- Generic knowledge base for the `read_wiki` tool
+- Demo Postgres schema matching **fb_audit table names** (`insights`, `property_*`, `actions`, …)
+- Knowledge base aligned with [fb_audit](https://github.com/KhatkevichKirill/fb_audit) — schema docs, query patterns, integration guide
 - Adapter docs for plugging in your own warehouse, LLM providers, and nginx SSO
 
 For ingestion reference notebooks, see [fb_audit](https://github.com/KhatkevichKirill/fb_audit).
@@ -22,7 +22,7 @@ For ingestion reference notebooks, see [fb_audit](https://github.com/KhatkevichK
 | [fb_audit](https://github.com/KhatkevichKirill/fb_audit) | Meta Marketing API → Postgres ETL notebooks and scripts |
 | **this repo** | Natural-language notebook analyst over the warehouse |
 
-Typical flow: use `fb_audit` to load `meta_ads`, then point this starter at that database and replace `data_analyst/knowledge/` with your schema docs.
+Typical flow: run [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL into Postgres, then point this repo at the same database. See [docs/fb_audit_integration.md](docs/fb_audit_integration.md).
 
 ## Notebook web app
 
@@ -65,18 +65,16 @@ Open `http://127.0.0.1:8000`, log in, create a notebook, and ask:
 
 ## What You Customize
 
-1. **Warehouse adapter** — point `DB_*` at your real `meta_ads` schema and replace `data_analyst/knowledge/`.
+1. **Real data** — run fb_audit ETL and point `DB_*` at your warehouse ([integration guide](docs/fb_audit_integration.md)).
 2. **LLM adapter** — configure provider keys and profiles in `.env`.
-3. **Deployment adapter** — optional nginx mount at `/analyst` with `URL_PREFIX=/analyst`.
-
-See [docs/adapters.md](docs/adapters.md).
+3. **Optional extensions** — matviews, breakdown ETL, nginx subpath — see [docs/adapters.md](docs/adapters.md).
 
 ## Repository Layout
 
 ```text
 data_analyst/          Python package: agent, tools, web app, migrations
 schema/                Postgres init scripts for docker compose
-docs/                  Architecture, adapters, deployment, licensing
+docs/                  Architecture, fb_audit integration, adapters, deployment
 examples/              Starter prompts for the demo dataset
 deploy/                Generic systemd + nginx examples
 docker-compose.yml     Local Postgres with demo data
@@ -96,4 +94,4 @@ MIT. See [LICENSE](LICENSE).
 
 ## Status
 
-Public starter draft. Replace demo schema and knowledge pages before using against production data.
+Public starter aligned with fb_audit. Demo docker seed uses the same table names; connect real ETL data with minimal `.env` changes.

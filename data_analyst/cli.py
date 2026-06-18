@@ -54,7 +54,7 @@ def cmd_repl(_: argparse.Namespace) -> int:
 def cmd_init_demo(_: argparse.Namespace) -> int:
     import psycopg2
 
-    schema_path = REPO_ROOT / "schema" / "demo_meta_ads.sql"
+    schema_path = REPO_ROOT / "schema" / "fb_audit_warehouse.sql"
     sql = schema_path.read_text()
     conn = psycopg2.connect(
         host=_env("DB_HOST"),

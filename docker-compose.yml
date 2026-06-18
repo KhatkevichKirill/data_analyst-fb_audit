@@ -10,7 +10,7 @@ services:
     volumes:
       - ./schema/01_setup.sql:/docker-entrypoint-initdb.d/01_setup.sql:ro
       - ./schema/01b_analyst_app_grants.sql:/docker-entrypoint-initdb.d/01b_analyst_app_grants.sql:ro
-      - ./schema/demo_meta_ads.sql:/docker-entrypoint-initdb.d/02_demo_meta_ads.sql:ro
+      - ./schema/fb_audit_warehouse.sql:/docker-entrypoint-initdb.d/02_fb_audit_warehouse.sql:ro
       - data_analyst_pg:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d meta_ads_demo"]
