@@ -22,7 +22,7 @@ For ingestion ETL scripts, see [fb_audit](https://github.com/KhatkevichKirill/fb
 | [fb_audit](https://github.com/KhatkevichKirill/fb_audit) | Meta Marketing API → Postgres ETL Python scripts |
 | **this repo** | Natural-language notebook analyst over the warehouse |
 
-Typical flow: run [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL into Postgres, then point this repo at the same database. See [docs/fb_audit_integration.md](docs/fb_audit_integration.md).
+Typical flow: run [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL into Postgres, then follow the [5-command quick path](docs/fb_audit_integration.md#quick-path--fb_audit-already-running).
 
 ## Notebook web app
 

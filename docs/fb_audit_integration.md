@@ -11,6 +11,77 @@ fb_audit (*.py loaders)  →  PostgreSQL  →  data_analyst-fb_audit (notebook U
   schema_breakdowns.sql
 ```
 
+## Quick path — fb_audit already running
+
+Use this when [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL is already loading into Postgres and you only need the notebook analyst on top. No knowledge-base or schema changes required.
+
+### Prerequisites (one-time)
+
+**Warehouse** — fb_audit has written at least once to your analytics database (`insights`, `property_*`, …). Breakdown tables are optional.
+
+**Read-only user** on the warehouse (same DB as fb_audit `DB_NAME`):
+
+```sql
+CREATE USER data_analyst_ro WITH PASSWORD 'choose_a_password';
+GRANT CONNECT ON DATABASE your_db TO data_analyst_ro;
+GRANT USAGE ON SCHEMA public TO data_analyst_ro;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO data_analyst_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO data_analyst_ro;
+```
+
+**App state database** — analyst keeps users and notebooks in a separate DB on the same Postgres instance:
+
+```sql
+CREATE DATABASE analyst_app;
+CREATE USER data_analyst_app WITH PASSWORD 'choose_a_password';
+GRANT ALL PRIVILEGES ON DATABASE analyst_app TO data_analyst_app;
+```
+
+### Five commands
+
+```bash
+# 1. Install
+git clone https://github.com/KhatkevichKirill/data_analyst-fb_audit.git
+cd data_analyst-fb_audit
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+
+# 2. Configure — point DB_* at fb_audit warehouse, APP_DB_* at analyst_app, add an LLM key
+cp .env.example .env
+
+# 3. App DB migrations + first login user
+data-analyst migrate
+data-analyst adduser admin --admin
+
+# 4. Analyst view over fb_audit insights (once per warehouse)
+data-analyst init-view
+
+# 5. Run
+data-analyst serve
+```
+
+Open `http://127.0.0.1:8000`, log in, create a notebook.
+
+`.env` minimum for a live fb_audit warehouse:
+
+```env
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=meta_ads          # same as fb_audit DB_NAME
+DB_USER=data_analyst_ro
+DB_PASSWORD=...
+
+APP_DB_HOST=127.0.0.1
+APP_DB_PORT=5432
+APP_DB_NAME=analyst_app
+APP_DB_USER=data_analyst_app
+APP_DB_PASSWORD=...
+
+DEEPSEEK_API_KEY=...      # or another configured provider
+```
+
+After `init-view`, the agent prefers `v_insights_daily` (pre-extracted `purchases`, `video_views`, `trials`). Without step 4 it still works but falls back to raw `insights` JSONB.
+
 ## Out-of-the-box paths
 
 ### Path A — Demo warehouse (no Meta token)
@@ -23,7 +94,9 @@ data-analyst adduser admin --admin
 data-analyst serve
 ```
 
-### Path B — Your real fb_audit database
+### Path B — Set up fb_audit from scratch
+
+If fb_audit is **already running**, use [Quick path](#quick-path--fb_audit-already-running) above instead.
 
 1. Set up fb_audit (see its README):
 
