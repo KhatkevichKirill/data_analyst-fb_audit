@@ -22,7 +22,7 @@ Unquoted numeric literals cause: `operator does not exist: character varying = b
 
 | Metric | Definition |
 |---|---|
-| Spend | `SUM(spend)` from `v_insights_daily` |
+| Spend | `SUM(spend)` from `v_insights_daily` (or `spend::numeric` from raw tables) |
 | Impressions | `SUM(impressions)` |
 | Clicks | `SUM(clicks)` |
 | Purchases | `SUM(purchases)` from `v_insights_daily` |
@@ -30,7 +30,7 @@ Unquoted numeric literals cause: `operator does not exist: character varying = b
 | CPA | `SUM(spend) / NULLIF(SUM(purchases), 0)` |
 | Hook rate | `SUM(video_views) / NULLIF(SUM(impressions), 0)` from `v_insights_daily` |
 
-If `v_insights_daily` is not installed, extract purchases from `insights.actions` JSONB (`omni_purchase`, `7d_click` window). See `schema_insights`.
+On raw `insights` and breakdown tables, core metrics are **TEXT** — cast before aggregating. Budget fields on `property_*` are TEXT in cents: `daily_budget::numeric / 100`.
 
 ## Date windows
 

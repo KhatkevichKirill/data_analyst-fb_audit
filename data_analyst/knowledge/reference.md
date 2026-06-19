@@ -105,8 +105,34 @@ ORDER BY event_time DESC
 LIMIT 20;
 ```
 
+## Spend by gender (breakdowns)
+
+```sql
+SELECT
+  gender,
+  round(sum(spend::numeric), 2) AS spend,
+  sum(impressions::bigint) AS impressions
+FROM insights_breakdowns_demographic
+WHERE account_id = '1000000001'
+  AND date_start >= current_date - 7
+GROUP BY 1
+ORDER BY spend DESC;
+```
+
+## Spend by platform (breakdowns)
+
+```sql
+SELECT
+  publisher_platform,
+  round(sum(spend::numeric), 2) AS spend
+FROM insights_breakdowns_placement
+WHERE date_start >= current_date - 7
+GROUP BY 1
+ORDER BY spend DESC;
+```
+
 ## Footguns
 
 - Quote all Meta IDs.
-- Cast `intraday_insights` TEXT metrics before aggregating.
-- Budget fields on `property_*` are in **cents**.
+- Cast TEXT metrics on `insights`, breakdown tables, and `intraday_insights` before aggregating.
+- Budget fields on `property_*` are TEXT in **cents**: `daily_budget::numeric / 100`.

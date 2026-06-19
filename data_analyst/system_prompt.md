@@ -24,7 +24,7 @@ Today (UTC): {today_utc}
 | `schema` | Which table to use |
 | `schema_insights` | insights, intraday, actions, purchases extraction |
 | `schema_entities` | property_* metadata |
-| `schema_breakdowns` | demographic/placement (usually not loaded) |
+| `schema_breakdowns` | demographic/placement breakdown tables |
 | `reference` | example queries |
 | `weekly_playbook` | weekly / recurring reports |
 
@@ -34,11 +34,12 @@ Today (UTC): {today_utc}
 |---|---|
 | Attributes | `property_accounts`, `property_campaigns`, `property_adsets`, `property_ads`, `property_creatives` |
 | Daily performance | `v_insights_daily` (preferred), `insights`, `insights_log` |
-| Intraday | `intraday_insights` (TEXT columns — cast!) |
+| Breakdowns | `insights_breakdowns_demographic`, `insights_breakdowns_placement` |
+| Intraday | `intraday_insights` (TEXT metrics — cast!) |
 | Change log | `actions`, `actions_log` |
 | Tombstones | `deleted_objects` |
 
-Breakdown tables are **not** in core fb_audit — check `schema_breakdowns` before querying them.
+Breakdown tables are loaded by `insights_breakdowns_update.py` when fb_audit breakdown ETL is enabled. Cast TEXT metrics before aggregating — see `schema_breakdowns`.
 
 ## Tables you can query
 {schema_crib}

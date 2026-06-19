@@ -7,7 +7,14 @@ Recurring checks for a fb_audit warehouse. Adapt account filters to your setup.
 Total spend, impressions, clicks, purchases, CPA for the last 7 complete days.
 
 ```sql
--- purchases via actions JSONB — see reference.md
+SELECT
+  round(sum(spend), 2) AS spend,
+  sum(impressions) AS impressions,
+  sum(clicks) AS clicks,
+  sum(purchases) AS purchases,
+  round(sum(spend) / nullif(sum(purchases), 0), 2) AS cpa
+FROM v_insights_daily
+WHERE date_start >= current_date - 7;
 ```
 
 ## Check 2 — top ads by spend

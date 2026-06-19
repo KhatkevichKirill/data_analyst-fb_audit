@@ -1,55 +1,111 @@
 # Schema: demographic and placement breakdowns
 
-## Not included in core fb_audit
+**Pipeline:** Meta Ads API → `insights_breakdowns_update.py`.
 
-The [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL loads:
+**DDL:** `schema_breakdowns.sql` in [fb_audit](https://github.com/KhatkevichKirill/fb_audit) (tables are also created at runtime by the loader).
 
-- entity attributes (`property_*`)
-- daily insights (`insights`)
-- intraday snapshot (`intraday_insights`)
-- change log (`actions`)
+> Meta does **not** allow age×gender and placement breakdowns in a single API call — fb_audit runs two separate fetches per day.
 
-It does **not** load demographic (age × gender) or placement breakdowns. Those require a separate Meta Insights API call with `breakdowns` parameters and additional tables.
-
-If you only run fb_audit, answer account-level and ad-level questions from `insights` + `property_*`. Do not query breakdown tables unless you added them yourself.
+Same incremental + **atomic last-7-day refetch** logic as `insights_update.py`: old rows for an `(account, day)` are replaced only after a successful fetch, inside one transaction.
 
 ---
 
-## Optional extension tables
+## insights_breakdowns_demographic
 
-If you extend your warehouse with a breakdowns pipeline, these are the usual shapes (based on common Meta Ads warehouse patterns):
-
-### insights_breakdowns_demographic
+**Purpose:** Daily ad performance split by age and gender.
 
 **Granularity:** One row per `(ad_id, date_start, age, gender)`.
 
 **Key columns:**
-- `ad_id`, `account_id`, `campaign_id`, `adset_id`
-- `age` — e.g. `'18-24'`, `'25-34'`, …
+- `account_id`, `campaign_id`, `adset_id`, `ad_id` — TEXT
+- `date_start`, `date_stop` — DATE
+- `age` — e.g. `'18-24'`, `'25-34'`, `'35-44'`, `'45-54'`, `'55-64'`, `'65+'`
 - `gender` — `'male'`, `'female'`, `'unknown'`
-- `spend`, `impressions`, `clicks` — often **TEXT** in raw tables; cast before arithmetic
-- `purchases` — sometimes pre-extracted as numeric
-- `actions` — text-encoded JSON in raw storage
+- `spend`, `impressions`, `clicks`, `reach` — **TEXT**; cast: `spend::numeric`
+- `actions`, `results`, `cost_per_result` — JSONB (same shape as `insights`)
+- `video_p25_watched_actions` … `video_p95_watched_actions` — JSONB
 
-**Gotchas:** Meta does not provide a single API call that combines age×gender×placement — demographic and placement breakdowns are separate fetches.
+**Join keys:** `ad_id` → `property_ads.id`; hierarchy IDs match `insights`.
 
-### insights_breakdowns_placement
+**Writer:** `insights_breakdowns_update.py` (demographic pass).
+
+**Purchases extraction:** same JSONB pattern as `insights` — `actions` where `action_type = 'omni_purchase'`, default window `7d_click`. No pre-built view; aggregate in SQL or use `v_insights_daily` for ad-level totals.
+
+---
+
+## insights_breakdowns_demographic_log
+
+**Purpose:** Fetch audit log for demographic breakdowns — which `(account_id, date)` pairs were loaded.
+
+**Granularity:** One row per `(account_id, date)`.
+
+**Columns:** `account_id`, `date`, `with_data`, `recording_date`.
+
+---
+
+## insights_breakdowns_placement
+
+**Purpose:** Daily ad performance split by publisher, position, and device.
 
 **Granularity:** One row per `(ad_id, date_start, publisher_platform, platform_position, impression_device)`.
 
 **Key columns:**
 - `publisher_platform` — `facebook`, `instagram`, `audience_network`, `messenger`
-- `platform_position` — `feed`, `reels`, `story`, etc.
+- `platform_position` — `feed`, `reels`, `story`, `an_classic`, etc.
 - `impression_device` — `mobile_app`, `desktop`, `mobile_web`
+- Metrics — same TEXT + JSONB pattern as demographic table
 
-### Materialized views (production pattern)
-
-Full production stacks sometimes add pre-aggregated matviews such as `mv_bd_demo` (account×day×age×gender) and `mv_bd_plac` (account×day×placement). fb_audit does not create these — add them only if you build a breakdown ETL and refresh job.
+**Writer:** `insights_breakdowns_update.py` (placement pass).
 
 ---
 
-## When users ask for breakdowns without tables present
+## insights_breakdowns_placement_log
 
-1. Check `information_schema.tables` or the schema crib for `insights_breakdowns_*`.
-2. If absent, tell the user breakdown data is not loaded yet and suggest extending fb_audit with a breakdown fetch script.
-3. Do not invent breakdown numbers from `insights` alone — that table has no age/gender/placement dimensions.
+**Purpose:** Fetch audit log for placement breakdowns.
+
+Same shape as `insights_breakdowns_demographic_log`.
+
+---
+
+## Query patterns
+
+### Spend by gender (7 days)
+
+```sql
+SELECT
+  gender,
+  round(sum(spend::numeric), 2) AS spend,
+  sum(impressions::bigint) AS impressions
+FROM insights_breakdowns_demographic
+WHERE account_id = '1000000001'
+  AND date_start >= current_date - 7
+GROUP BY 1
+ORDER BY spend DESC;
+```
+
+### Spend by platform (7 days)
+
+```sql
+SELECT
+  publisher_platform,
+  round(sum(spend::numeric), 2) AS spend
+FROM insights_breakdowns_placement
+WHERE date_start >= current_date - 7
+GROUP BY 1
+ORDER BY spend DESC;
+```
+
+---
+
+## Gotchas
+
+- Breakdown dimensions must **not** appear in API `fields` — they come from the `breakdowns` parameter only.
+- Cast TEXT metrics before `SUM` / `ORDER BY`.
+- Do not sum breakdown rows to reconcile account totals without deduplication — use `v_insights_daily` or `insights` for official ad×day totals.
+- Optional `REFRESH_BREAKDOWN_MVS` env in fb_audit refreshes materialized views if you add them; the open-source repo ships base tables only.
+
+## When tables are absent
+
+1. Check `information_schema.tables` for `insights_breakdowns_*`.
+2. If absent, tell the user to run `psql -f schema_breakdowns.sql` then `python insights_breakdowns_update.py`.
+3. Do not invent age/gender/placement splits from `insights` alone — that table has no breakdown dimensions.

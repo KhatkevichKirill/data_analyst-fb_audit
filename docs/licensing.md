@@ -24,6 +24,6 @@ MIT keeps adoption friction low for:
 | This starter repo | MIT (public) |
 | Company-specific knowledge pages | private internal docs |
 | Production credentials and cron wiring | private ops repo or secret store |
-| Ingestion notebooks / ETL | public `fb_audit` or private pipeline repo |
+| Ingestion ETL | public [fb_audit](https://github.com/KhatkevichKirill/fb_audit) Python loaders |
 
 If you publish adapters built on top of this starter, document which files are MIT starter code and which files contain proprietary business logic.

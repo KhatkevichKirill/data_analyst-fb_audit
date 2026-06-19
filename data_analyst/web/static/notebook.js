@@ -12,15 +12,19 @@ const STARTER_QUESTIONS = [
   },
   {
     label: "Daily spend trend",
-    prompt: "Plot daily account spend for the last 14 days from the insights table.",
+    prompt: "Plot daily account spend for the last 14 days from v_insights_daily.",
   },
   {
     label: "Zero-purchase spenders",
-    prompt: "Which ads spent money over the last 7 days but had zero omni_purchase conversions? Sort by spend descending.",
+    prompt: "Which ads spent money over the last 7 days but had zero purchases in v_insights_daily? Sort by spend descending.",
   },
   {
-    label: "Campaign breakdown",
-    prompt: "Compare campaigns by spend, impressions, clicks, and CPA over the last 7 days.",
+    label: "Campaign comparison",
+    prompt: "Compare campaigns by spend, impressions, clicks, purchases, and CPA over the last 7 days using v_insights_daily.",
+  },
+  {
+    label: "Spend by gender",
+    prompt: "Show spend and impressions by gender over the last 7 days from insights_breakdowns_demographic. Cast TEXT metrics before summing.",
   },
   {
     label: "Data freshness",
@@ -28,7 +32,7 @@ const STARTER_QUESTIONS = [
   },
   {
     label: "Last week summary",
-    prompt: "Summarize last week's performance: total spend, impressions, clicks, purchases, and CPA at account level.",
+    prompt: "Summarize last week's performance from v_insights_daily: total spend, impressions, clicks, purchases, and CPA at account level.",
   },
 ];
 

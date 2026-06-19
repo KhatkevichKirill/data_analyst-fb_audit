@@ -18,7 +18,7 @@ Knowledge pages for the `read_wiki` tool. Defaults match the [fb_audit](https://
 |---|---|
 | `schema_insights` | `insights`, `insights_log`, `intraday_insights`, `actions` |
 | `schema_entities` | `property_*`, `deleted_objects` |
-| `schema_breakdowns` | Extension point — not in core fb_audit |
+| `schema_breakdowns` | `insights_breakdowns_demographic`, `insights_breakdowns_placement` |
 
 ## Recurring analytics
 

@@ -1,5 +1,7 @@
 -- fb_audit-compatible warehouse schema + synthetic seed data.
--- Matches tables created by https://github.com/KhatkevichKirill/fb_audit notebooks.
+-- Matches tables from https://github.com/KhatkevichKirill/fb_audit
+-- (schema_properties.sql, schema_breakdowns.sql, insights.py DDL).
+-- Demo property_* tables use a readable subset; production warehouses are wider (all TEXT).
 
 GRANT USAGE ON SCHEMA public TO data_analyst_ro;
 
@@ -64,10 +66,10 @@ CREATE TABLE IF NOT EXISTS property_creatives (
 );
 
 CREATE TABLE IF NOT EXISTS deleted_objects (
-  object_id       VARCHAR(50) PRIMARY KEY,
-  account_id      VARCHAR(50),
-  object_type     VARCHAR(20),
-  recording_date  TIMESTAMP WITHOUT TIME ZONE
+  object_id       TEXT,
+  account_id      TEXT,
+  object_type     TEXT,
+  updated_at      TIMESTAMP WITHOUT TIME ZONE
 );
 
 -- ── Insights ─────────────────────────────────────────────────────────────────
@@ -86,33 +88,49 @@ CREATE TABLE IF NOT EXISTS insights (
   adset_id         VARCHAR(50),
   ad_id            VARCHAR(50),
   date_start       DATE,
-  impressions      BIGINT,
-  clicks           BIGINT,
-  spend            NUMERIC,
-  reach            BIGINT,
+  date_stop        DATE,
+  impressions      TEXT,
+  reach            TEXT,
+  clicks           TEXT,
+  spend            TEXT,
+  unique_inline_link_clicks TEXT,
+  inline_link_clicks TEXT,
+  inline_post_engagement TEXT,
+  estimated_ad_recallers TEXT,
+  estimated_ad_recall_rate TEXT,
+  objective        TEXT,
+  unique_clicks    TEXT,
   actions          JSONB,
-  results          JSONB,
-  cost_per_result  JSONB,
+  action_values    JSONB,
+  outbound_clicks  JSONB,
+  unique_actions   JSONB,
+  unique_outbound_clicks JSONB,
   video_p25_watched_actions JSONB,
   video_p50_watched_actions JSONB,
   video_p75_watched_actions JSONB,
   video_p95_watched_actions JSONB,
+  results          JSONB,
+  cost_per_result  JSONB,
   PRIMARY KEY (account_id, campaign_id, adset_id, ad_id, date_start),
   FOREIGN KEY (account_id, date_start)
     REFERENCES insights_log(account_id, date) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS intraday_insights (
-  account_id      TEXT,
-  campaign_id     TEXT,
-  adset_id        TEXT,
-  ad_id           TEXT,
+  account_id      VARCHAR(50),
+  campaign_id     VARCHAR(50),
+  adset_id        VARCHAR(50),
+  ad_id           VARCHAR(50),
   date_start      DATE,
-  spend           TEXT,
-  impressions     TEXT,
-  clicks          TEXT,
-  actions         TEXT,
-  collected_at    TIMESTAMP WITHOUT TIME ZONE
+  date_stop       DATE,
+  spend           VARCHAR(50),
+  impressions     VARCHAR(50),
+  clicks          VARCHAR(50),
+  reach           VARCHAR(50),
+  actions         JSONB,
+  results         JSONB,
+  cost_per_result JSONB,
+  collected_at    TIMESTAMP WITHOUT TIME ZONE DEFAULT now()
 );
 
 -- ── Actions ──────────────────────────────────────────────────────────────────
@@ -139,6 +157,67 @@ CREATE TABLE IF NOT EXISTS actions (
   extra_data               JSONB,
   id                       VARCHAR(100),
   FOREIGN KEY (account_id, date) REFERENCES actions_log(id, date) ON UPDATE CASCADE
+);
+
+-- ── Breakdowns (from fb_audit schema_breakdowns.sql) ───────────────────────────
+
+CREATE TABLE IF NOT EXISTS insights_breakdowns_demographic (
+  account_id                    TEXT,
+  campaign_id                   TEXT,
+  adset_id                      TEXT,
+  ad_id                         TEXT,
+  date_start                    DATE,
+  date_stop                     DATE,
+  age                           TEXT,
+  gender                        TEXT,
+  impressions                   TEXT,
+  reach                         TEXT,
+  clicks                        TEXT,
+  spend                         TEXT,
+  actions                       JSONB,
+  results                       JSONB,
+  cost_per_result               JSONB,
+  video_p25_watched_actions     JSONB,
+  video_p50_watched_actions     JSONB,
+  video_p75_watched_actions     JSONB,
+  video_p95_watched_actions     JSONB
+);
+
+CREATE TABLE IF NOT EXISTS insights_breakdowns_demographic_log (
+  account_id     TEXT,
+  date           DATE,
+  with_data      BOOLEAN,
+  recording_date TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS insights_breakdowns_placement (
+  account_id                    TEXT,
+  campaign_id                   TEXT,
+  adset_id                      TEXT,
+  ad_id                         TEXT,
+  date_start                    DATE,
+  date_stop                     DATE,
+  publisher_platform            TEXT,
+  platform_position             TEXT,
+  impression_device             TEXT,
+  impressions                   TEXT,
+  reach                         TEXT,
+  clicks                        TEXT,
+  spend                         TEXT,
+  actions                       JSONB,
+  results                       JSONB,
+  cost_per_result               JSONB,
+  video_p25_watched_actions     JSONB,
+  video_p50_watched_actions     JSONB,
+  video_p75_watched_actions     JSONB,
+  video_p95_watched_actions     JSONB
+);
+
+CREATE TABLE IF NOT EXISTS insights_breakdowns_placement_log (
+  account_id     TEXT,
+  date           DATE,
+  with_data      BOOLEAN,
+  recording_date TIMESTAMP
 );
 
 GRANT SELECT ON ALL TABLES IN SCHEMA public TO data_analyst_ro;
@@ -175,17 +254,18 @@ SELECT '1000000001', (current_date - offs)::date, true, now()
 FROM generate_series(0, 13) AS offs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO insights (account_id, campaign_id, adset_id, ad_id, date_start, impressions, clicks, spend, reach, actions)
+INSERT INTO insights (account_id, campaign_id, adset_id, ad_id, date_start, date_stop, impressions, clicks, spend, reach, actions)
 SELECT
   '1000000001',
   a.campaign_id,
   a.adset_id,
   a.ad_id,
   (current_date - offs)::date,
-  (1000 + random() * 4000)::bigint,
-  (20 + random() * 90)::bigint,
-  round((40 + random() * 120)::numeric, 2),
-  (800 + random() * 3000)::bigint,
+  (current_date - offs)::date,
+  ((1000 + random() * 4000)::int)::text,
+  ((20 + random() * 90)::int)::text,
+  round((40 + random() * 120)::numeric, 2)::text,
+  ((800 + random() * 3000)::int)::text,
   jsonb_build_array(
     jsonb_build_object('action_type', 'omni_purchase', '7d_click', (CASE WHEN random() < 0.3 THEN 0 ELSE (1 + random() * 4)::int END)::text),
     jsonb_build_object('action_type', 'video_view', '7d_click', (50 + random() * 200)::int::text)
@@ -196,22 +276,66 @@ FROM (
 CROSS JOIN generate_series(0, 13) AS offs
 ON CONFLICT DO NOTHING;
 
-INSERT INTO intraday_insights (account_id, campaign_id, adset_id, ad_id, date_start, spend, impressions, clicks, actions, collected_at)
+INSERT INTO intraday_insights (account_id, campaign_id, adset_id, ad_id, date_start, date_stop, spend, impressions, clicks, actions, collected_at)
 SELECT
   i.account_id,
   i.campaign_id,
   i.adset_id,
   i.ad_id,
   current_date,
-  i.spend::text,
-  i.impressions::text,
-  i.clicks::text,
-  i.actions::text,
+  current_date,
+  i.spend,
+  i.impressions,
+  i.clicks,
+  i.actions,
   now()
 FROM insights i
 WHERE i.date_start = current_date - 1
-LIMIT 3
-ON CONFLICT DO NOTHING;
+LIMIT 3;
+
+INSERT INTO insights_breakdowns_demographic_log (account_id, date, with_data, recording_date)
+SELECT '1000000001', (current_date - offs)::date, true, now()
+FROM generate_series(0, 6) AS offs;
+
+INSERT INTO insights_breakdowns_demographic (
+  account_id, campaign_id, adset_id, ad_id, date_start, date_stop, age, gender,
+  impressions, clicks, spend, actions
+)
+SELECT
+  i.account_id, i.campaign_id, i.adset_id, i.ad_id, i.date_start, i.date_stop,
+  g.age, g.gender,
+  (i.impressions::numeric * (0.3 + random() * 0.4))::int::text,
+  (i.clicks::numeric * (0.3 + random() * 0.4))::int::text,
+  (i.spend::numeric * (0.3 + random() * 0.4))::text,
+  i.actions
+FROM insights i
+CROSS JOIN (VALUES ('25-34', 'female'), ('25-34', 'male'), ('35-44', 'female')) AS g(age, gender)
+WHERE i.date_start >= current_date - 7
+LIMIT 60;
+
+INSERT INTO insights_breakdowns_placement_log (account_id, date, with_data, recording_date)
+SELECT '1000000001', (current_date - offs)::date, true, now()
+FROM generate_series(0, 6) AS offs;
+
+INSERT INTO insights_breakdowns_placement (
+  account_id, campaign_id, adset_id, ad_id, date_start, date_stop,
+  publisher_platform, platform_position, impression_device,
+  impressions, clicks, spend, actions
+)
+SELECT
+  i.account_id, i.campaign_id, i.adset_id, i.ad_id, i.date_start, i.date_stop,
+  p.publisher_platform, p.platform_position, p.impression_device,
+  (i.impressions::numeric * 0.5)::int::text,
+  (i.clicks::numeric * 0.5)::int::text,
+  (i.spend::numeric * 0.5)::text,
+  i.actions
+FROM insights i
+CROSS JOIN (VALUES
+  ('facebook', 'feed', 'mobile_app'),
+  ('instagram', 'reels', 'mobile_app')
+) AS p(publisher_platform, platform_position, impression_device)
+WHERE i.date_start >= current_date - 7
+LIMIT 40;
 
 INSERT INTO actions_log (id, date, with_data, recording_date)
 VALUES ('1000000001', current_date - 1, true, now())

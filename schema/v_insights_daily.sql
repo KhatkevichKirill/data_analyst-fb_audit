@@ -9,10 +9,10 @@ SELECT
     i.adset_id,
     i.ad_id,
     i.date_start,
-    i.impressions,
-    i.clicks,
-    i.spend,
-    i.reach,
+    i.impressions::bigint AS impressions,
+    i.clicks::bigint AS clicks,
+    i.spend::numeric AS spend,
+    i.reach::bigint AS reach,
     -- purchases: omni_purchase, 7d_click window (matches production mv_insights_daily)
     COALESCE((
         SELECT SUM((elem->>'7d_click')::numeric)

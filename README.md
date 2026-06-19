@@ -9,17 +9,17 @@ This repository is a **public starter kit**, not a production dump. It ships:
 - FastAPI notebook web app with multi-user auth
 - Read-only SQL, chart, CSV export, and optional sandboxed `python_exec`
 - `analyst_app` state database for notebooks, cells, and events
-- Demo Postgres schema matching **fb_audit table names** (`insights`, `property_*`, `actions`, …)
+- Demo Postgres schema matching **fb_audit table names** (`insights`, `property_*`, `actions`, breakdowns, …)
 - Knowledge base aligned with [fb_audit](https://github.com/KhatkevichKirill/fb_audit) — schema docs, query patterns, integration guide
 - Adapter docs for plugging in your own warehouse, LLM providers, and nginx SSO
 
-For ingestion reference notebooks, see [fb_audit](https://github.com/KhatkevichKirill/fb_audit).
+For ingestion ETL scripts, see [fb_audit](https://github.com/KhatkevichKirill/fb_audit).
 
 ## Related repositories
 
 | Repository | Role |
 |---|---|
-| [fb_audit](https://github.com/KhatkevichKirill/fb_audit) | Meta Marketing API → Postgres ETL notebooks and scripts |
+| [fb_audit](https://github.com/KhatkevichKirill/fb_audit) | Meta Marketing API → Postgres ETL Python scripts |
 | **this repo** | Natural-language notebook analyst over the warehouse |
 
 Typical flow: run [fb_audit](https://github.com/KhatkevichKirill/fb_audit) ETL into Postgres, then point this repo at the same database. See [docs/fb_audit_integration.md](docs/fb_audit_integration.md).
@@ -67,7 +67,7 @@ Open `http://127.0.0.1:8000`, log in, create a notebook, and ask:
 
 1. **Real data** — run fb_audit ETL and point `DB_*` at your warehouse ([integration guide](docs/fb_audit_integration.md)).
 2. **LLM adapter** — configure provider keys and profiles in `.env`.
-3. **Optional extensions** — matviews, breakdown ETL, nginx subpath — see [docs/adapters.md](docs/adapters.md).
+3. **Optional extensions** — materialized views, nginx subpath — see [docs/adapters.md](docs/adapters.md).
 
 ## Repository Layout
 
